@@ -2,8 +2,7 @@ import torch
 import torchvision
 from torchvision.io import read_video
 import json 
-
-import json
+import torch.nn.functional as F
 
 # Load your current JSON (class name → index)
 with open("kinetics_classnames.json", "r") as f:
@@ -34,20 +33,36 @@ frames, _, _ = read_video(video_path, pts_unit='sec')
 
 # --- Preprocess ---
 frames = frames.permute(0, 3, 1, 2)            # [T, C, H, W]
-frames = frames[:16].float() / 255.0          # first 16 frames, normalise
+# frames = frames[:16].float() / 255.0          # first 16 frames, normalise
+T = frames.shape[0]
+idx = torch.linspace(0, T-1, 16).long()
+frames = frames[idx]
+frames = frames.float() /255.0 #[T. C, H, W]
+
+frames = F.interpolate(
+    frames,
+    size=(112, 112),
+    mode="bilinear",
+    align_corners=False
+)
+mean = torch.tensor([0.43216, 0.394666, 0.37645]).view(1, 3, 1, 1)
+std  = torch.tensor([0.22803, 0.22145, 0.216989]).view(1, 3, 1, 1)
+
+frames = (frames - mean) / std
+
 frames = frames.unsqueeze(0)                  # [1, T, C, H, W] as neural networks always expect batches even of size 1
-frames = frames.permute(0, 2, 1, 3, 4)         # [B, C, T, H, W]
+frames = frames.permute(0, 2, 1, 3, 4)         # [B, C, T, H, W] reorder for 3D CNN input
 
 # --- Hook for intermediate activations ---
 activations = {}
 def hook_fn(module, input, output):
     activations['layer4_block'] = output
+    output.retain_grad()
 
 model.layer4[1].conv2.register_forward_hook(hook_fn)
 
 # --- Forward pass + predictions ---
-with torch.no_grad():
-    preds = model(frames)
+preds = model(frames)
 
 probs = torch.softmax(preds, dim=1)[0]
 top5 = torch.topk(probs, 5)
@@ -58,3 +73,7 @@ for idx, score in zip(top5.indices, top5.values):
     print(f"  {label:40s}  {score:.4f}")
 
 print("Intermediate activation shape:", activations['layer4_block'].shape)
+
+from torchvision.models.video import R3D_18_Weights
+
+print(R3D_18_Weights.DEFAULT.transforms())
