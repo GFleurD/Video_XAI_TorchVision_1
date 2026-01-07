@@ -76,20 +76,12 @@ frames = (frames - mean) / std
 frames = frames.unsqueeze(0)                  # [1, T, C, H, W] as neural networks always expect batches even of size 1
 frames = frames.permute(0, 2, 1, 3, 4)         # [B, C, T, H, W] reorder for 3D CNN input
 
-# --- Hook for intermediate activations ---
-activations = {}
-def hook_fn(module, input, output):
-    activations['layer4_block'] = output
-    output.retain_grad()
-
-model.layer4[1].conv2.register_forward_hook(hook_fn)
-
 # --- Forward pass + predictions ---
 preds = model(frames)
 
 probs = torch.softmax(preds, dim=1)[0]
 top5 = torch.topk(probs, 5)
-
+ 
 print("Top‑5 predictions:")
 for idx, score in zip(top5.indices, top5.values):
     label = id_to_class.get(str(int(idx)), "Unknown")
@@ -110,10 +102,12 @@ class TCAVWrapper:
         layer.register_forward_hook(self._hook_fn)
 
     def _hook_fn(self, module, input, output):
+        #this pulls the activations from the layer I think
         self.activations[self.bottleneck_layer_name] = output
         output.retain_grad()
 
     def get_activations_and_grads(self, x, target_class):
+        #at zero gradient, find the predictions of? need to ask chatgpt these ones really
         self.model.zero_grad()
         preds = self.model(x)
         preds[0, target_class].backward()
@@ -148,7 +142,7 @@ concept_acts = torch.cat([flatten_acts(wrapper.get_activations_and_grads(v, targ
 random_acts = torch.cat([flatten_acts(wrapper.get_activations_and_grads(v, target_class_idx)[0])
                          for v in random_videos], dim=0)
 
-#train a simple CAC
+#train a simple CAV
 X = torch.cat([concept_acts, random_acts], dim=0).numpy()
 y = np.array([1]*concept_acts.shape[0] + [0]*random_acts.shape[0])
 

@@ -4,9 +4,9 @@ import os
 
 ANNOTATIONS = "annotations/k400_val.csv"
 OUTPUT_ROOT = "videos"
-TARGET_CLASS = "crying"
+TARGET_CLASS = "salsa dancing"
 
-MAX_VIDEOS = 10  # start small
+MAX_VIDEOS = 50  # start small
 
 os.makedirs(os.path.join(OUTPUT_ROOT, TARGET_CLASS), exist_ok=True)
 
