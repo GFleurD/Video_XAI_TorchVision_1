@@ -87,8 +87,6 @@ for idx, score in zip(top5.indices, top5.values):
     label = id_to_class.get(str(int(idx)), "Unknown")
     print(f"  {label:40s}  {score:.4f}")
 
-print("Intermediate activation shape:", activations['layer4_block'].shape)
-print(R3D_18_Weights.DEFAULT.transforms())
 
 class TCAVWrapper:
     def __init__(self, model, bottleneck_layer_name, id_to_class):
