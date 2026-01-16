@@ -8,8 +8,8 @@ import numpy as np
 
 # --- Paths ---
 model_path = '/Users/fleurconway/Documents/Programming/Kinetics_400_First_Test/pose_landmarker_lite.task'
-input_video_path = "/Users/fleurconway/Documents/Programming/Kinetics_400_First_Test/videos/dancing ballet/0owoOHazQvU_534_544.mp4"
-output_video_path = "/Users/fleurconway/Documents/Programming/Kinetics_400_First_Test/videos/dancing ballet/fullbodypose/0owoOHazQvU_534_544_fullbodypose.mp4"
+input_video_path = "/Users/fleurconway/Documents/Programming/Kinetics_400_First_Test/videos/salsa dancing/-_ScQW-_JMQ_8_18.mp4"
+output_video_path = "/Users/fleurconway/Documents/Programming/Kinetics_400_First_Test/videos/salsa dancing/fullbodypose/-_ScQW-_JMQ_8_18_fullbodypose.mp4"
 
 # --- MediaPipe setup ---
 BaseOptions = mp.tasks.BaseOptions
